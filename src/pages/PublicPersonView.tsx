@@ -103,9 +103,11 @@ export const PublicPersonView = () => {
           <CardContent className="p-8">
             <div className="space-y-6">
               {/* QR Code Section */}
-              <div className="flex justify-center">
-                <QRSection value={`${window.location.origin}/public/${person.public_link_id}`} />
-              </div>
+              {window.location.pathname !== `/public/${person.public_link_id}` && (
+                <div className="flex justify-center">
+                  <QRSection value={`${window.location.origin}/public/${person.public_link_id}`} />
+                </div>
+              )}
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   {person.name}
