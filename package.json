@@ -22,7 +22,8 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.9.3",
     "vite": "^5.4.2",
-    "serve": "^14.2.0"
+    "serve": "^14.2.0",
+    "@vitejs/plugin-react": "^4.3.1"
   },
   "devDependencies": {
     "globals": "^15.9.0",
