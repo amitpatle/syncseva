@@ -1,192 +1,213 @@
-# Person Directory Web Application
+# Person Manager
 
-A secure, full-featured web application for managing personal contacts with photo uploads, emergency contact information, structured addresses, and unique public sharing links.
+A secure, full-stack web application for managing person entries with authentication, CRUD operations, file uploads, and public sharing capabilities.
 
 ## Features
 
-### 🔐 Authentication & Security
-- Secure user registration and login with Supabase Auth
-- Email/password authentication with proper validation
-- Row-level security (RLS) ensuring users can only access their own data
-- Secure session management
+- **Secure Authentication**: User registration and login with Supabase Auth
+- **Person Management**: Complete CRUD operations for person entries
+- **File Uploads**: Image storage with thumbnail support
+- **Public Sharing**: Unique, unguessable public links for read-only access
+- **Responsive Design**: Mobile-first design with Tailwind CSS
+- **Real-time Validation**: Client and server-side data validation
+- **Pagination**: Efficient data loading with pagination support
 
-### 👥 Person Management
-- Complete CRUD operations for person entries
-- Structured data storage:
-  - Full name
-  - Photo upload with thumbnails
-  - Emergency contact (name + phone)
-  - Complete address (street, city, state, postal code, country)
-- Server and client-side validation
-- Form error handling and user feedback
+## Tech Stack
 
-### 🔗 Public Sharing
-- Unique, unguessable public sharing links for each person
-- Read-only public access without authentication required
-- Secure UUID-based share IDs
-- Public links work independently of user accounts
-
-### 📱 User Experience
-- Fully responsive design (mobile-first)
-- Clean, modern interface with Tailwind CSS
-- Pagination for large datasets (12 items per page)
-- Real-time search and filtering
-- Loading states and error handling
-- Image upload with preview functionality
-
-### 🖼️ File Management
-- Photo upload to Supabase Storage
-- Automatic thumbnail generation
-- Fallback avatar generation for users without photos
-- Secure file storage with public URLs
-
-## Technology Stack
-
-- **Frontend**: React 18, TypeScript, Tailwind CSS
-- **Backend**: Supabase (PostgreSQL database, authentication, storage)
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Vite
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **File Storage**: Supabase Storage
+- **Authentication**: Supabase Auth with email/password
 - **Icons**: Lucide React
-- **Build Tool**: Vite
-- **Routing**: React Router DOM
+
+## Prerequisites
+
+- Node.js 18+
+- Supabase account
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 16+ installed
-- A Supabase account and project
-
-### 1. Clone and Setup
+### 1. Clone the repository
 
 ```bash
-# Clone the repository
-git clone <your-repo>
-cd person-directory
+git clone <repository-url>
+cd person-manager
+```
 
-# Install dependencies
+### 2. Install dependencies
+
+```bash
 npm install
 ```
 
-### 2. Supabase Configuration
+### 3. Set up Supabase
 
 1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Get your project URL and anon key from the project settings
+2. Go to Settings → API to get your project URL and anon key
 3. Create a `.env` file based on `.env.example`:
 
 ```bash
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+cp .env.example .env
 ```
 
-### 3. Database Setup
+4. Fill in your Supabase credentials in `.env`
 
-1. In your Supabase project dashboard, go to the SQL Editor
-2. Run the migration file `supabase/migrations/create_persons_table.sql`
-3. This will create the `persons` table with proper RLS policies
+### 4. Set up the database
 
-### 4. Storage Setup
+Run these SQL commands in your Supabase SQL Editor:
 
-1. In Supabase, go to Storage
-2. Create a new bucket called `person-photos`
-3. Set the bucket to public
-4. Configure RLS policies for the storage bucket to allow authenticated users to upload
+```sql
+-- Create persons table
+CREATE TABLE IF NOT EXISTS persons (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  photo_url text,
+  emergency_contact text NOT NULL,
+  address jsonb NOT NULL,
+  public_link_id text UNIQUE NOT NULL,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 
-### 5. Run the Application
+-- Enable RLS
+ALTER TABLE persons ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Users can read own persons"
+  ON persons
+  FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create own persons"
+  ON persons
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own persons"
+  ON persons
+  FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own persons"
+  ON persons
+  FOR DELETE
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+-- Allow public read access via public_link_id
+CREATE POLICY "Allow public read access"
+  ON persons
+  FOR SELECT
+  TO anon
+  USING (true);
+
+-- Create storage bucket
+INSERT INTO storage.buckets (id, name, public) VALUES ('person-photos', 'person-photos', true);
+
+-- Create storage policy
+CREATE POLICY "Users can upload photos"
+  ON storage.objects
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'person-photos' AND auth.uid()::text = (storage.foldername(name))[1]);
+```
+
+### 5. Run the development server
 
 ```bash
-# Start development server
 npm run dev
 ```
 
 The application will be available at `http://localhost:5173`
 
-## Project Structure
+## API Documentation
 
+### Authentication
+
+- `POST /auth/signup` - Register new user
+- `POST /auth/signin` - User login
+- `POST /auth/signout` - User logout
+
+### Person Management
+
+- `GET /api/persons` - Get user's persons (paginated)
+- `POST /api/persons` - Create new person
+- `GET /api/persons/:id` - Get specific person
+- `PUT /api/persons/:id` - Update person
+- `DELETE /api/persons/:id` - Delete person
+- `GET /api/public/:linkId` - Get person by public link
+
+### File Upload
+
+- `POST /storage/person-photos` - Upload person photo
+
+## Data Models
+
+### Person Entry
+```typescript
+interface Person {
+  id: string;
+  name: string;
+  photo_url?: string;
+  emergency_contact: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zip_code: string;
+    country: string;
+  };
+  public_link_id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+}
 ```
-src/
-├── components/          # React components
-│   ├── AuthForm.tsx    # Login/signup form
-│   ├── Layout.tsx      # App layout wrapper
-│   ├── PersonCard.tsx  # Person display card
-│   ├── PersonForm.tsx  # Add/edit person form
-│   ├── PersonDirectory.tsx # Main directory view
-│   ├── PublicPersonView.tsx # Public sharing view
-│   ├── Pagination.tsx  # Pagination component
-│   ├── ShareModal.tsx  # Share link modal
-│   └── DeleteModal.tsx # Delete confirmation modal
-├── contexts/           # React contexts
-│   └── AuthContext.tsx # Authentication context
-├── hooks/             # Custom React hooks
-│   └── usePersons.ts  # Person data management
-├── lib/               # Utility libraries
-│   ├── supabase.ts    # Supabase client
-│   └── database.types.ts # TypeScript types
-└── App.tsx            # Main app component
-```
 
-## API Endpoints & Database Schema
+## Security Features
 
-### Database Tables
-
-#### `persons`
-- `id` (UUID, Primary Key)
-- `user_id` (UUID, Foreign Key to auth.users)
-- `name` (Text, Required)
-- `photo_url` (Text, Optional)
-- `emergency_contact_name` (Text, Required)
-- `emergency_contact_phone` (Text, Required)
-- `address_street` (Text, Required)
-- `address_city` (Text, Required)
-- `address_state` (Text, Required)
-- `address_postal_code` (Text, Required)
-- `address_country` (Text, Default: 'United States')
-- `public_share_id` (Text, Unique, Auto-generated)
-- `created_at` (Timestamp)
-- `updated_at` (Timestamp)
-
-### Security Policies
-
-- Users can only view, create, update, and delete their own persons
-- Public read access available via `public_share_id`
-- Row-level security enabled on all tables
+- Row Level Security (RLS) policies
+- Authenticated file uploads
+- Secure public links with UUIDs
+- Input validation and sanitization
+- CORS protection
 
 ## Deployment
 
-### Netlify/Vercel Deployment
+### Vercel Deployment
+
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy with automatic builds on push
+
+### Netlify Deployment
+
+1. Build the project: `npm run build`
+2. Deploy the `dist` folder to Netlify
+3. Set environment variables in Netlify dashboard
+
+### Manual Deployment
 
 1. Build the project:
 ```bash
 npm run build
 ```
 
-2. Deploy the `dist` folder to your preferred hosting service
+2. Upload the `dist` folder to your hosting provider
+3. Configure environment variables
+4. Set up redirects for SPA routing
 
-3. Set environment variables in your hosting platform:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
+## Environment Variables
 
-4. Configure redirects for client-side routing:
-
-For Netlify, create `public/_redirects`:
-```
-/*    /index.html   200
-```
-
-For Vercel, create `vercel.json`:
-```json
-{
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
-```
-
-## Security Considerations
-
-- All sensitive operations require authentication
-- Row-level security prevents data leakage between users
-- Public sharing links are UUID-based and unguessable
-- File uploads are scanned and stored securely
-- Client and server-side validation prevent malicious input
+| Variable | Description |
+|----------|-------------|
+| `VITE_SUPABASE_URL` | Your Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon key |
 
 ## Contributing
 

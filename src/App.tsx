@@ -1,51 +1,61 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Layout from './components/Layout';
-import AuthForm from './components/AuthForm';
-import PersonDirectory from './components/PersonDirectory';
-import PublicPersonView from './components/PublicPersonView';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './components/providers/AuthProvider';
+import { useAuth } from './hooks/useAuth';
+import { AuthForm } from './components/auth/AuthForm';
+import { Dashboard } from './pages/Dashboard';
+import { PublicPersonView } from './pages/PublicPersonView';
 
-function AuthenticatedApp() {
+const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
+  
+  return user ? <>{children}</> : <AuthPage />;
+};
 
-  if (!user) {
-    return (
-      <AuthForm 
-        mode={authMode} 
-        onToggleMode={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
-      />
-    );
-  }
-
+const AuthPage = () => {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  
   return (
-    <Layout>
-      <PersonDirectory />
-    </Layout>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <AuthForm 
+        mode={mode} 
+        onToggleMode={() => setMode(mode === 'signin' ? 'signup' : 'signin')} 
+      />
+    </div>
   );
-}
+};
+
+const AppContent = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <AuthGuard>
+              <Dashboard />
+            </AuthGuard>
+          }
+        />
+        <Route path="/public/:linkId" element={<PublicPersonView />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
+  );
+};
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/share/:shareId" element={<PublicPersonView />} />
-          <Route path="/*" element={<AuthenticatedApp />} />
-        </Routes>
-      </Router>
+      <AppContent />
     </AuthProvider>
   );
 }
