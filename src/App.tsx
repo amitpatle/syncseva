@@ -5,6 +5,7 @@ import { useAuth } from './hooks/useAuth';
 import { AuthForm } from './components/auth/AuthForm';
 import { Dashboard } from './pages/Dashboard';
 import { PublicPersonView } from './pages/PublicPersonView';
+import HomePage from './pages/HomePage';
 
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -37,8 +38,9 @@ const AppContent = () => {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<HomePage />} />
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <AuthGuard>
               <Dashboard />

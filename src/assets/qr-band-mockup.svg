@@ -1,0 +1,27 @@
+<svg width="480" height="180" viewBox="0 0 480 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Band background -->
+  <rect x="20" y="60" width="440" height="60" rx="30" fill="#e0e7ef" stroke="#b6c2d6" stroke-width="3"/>
+  <!-- Band shadow -->
+  <ellipse cx="240" cy="135" rx="180" ry="18" fill="#b6c2d6" fill-opacity="0.18"/>
+  <!-- QR code placeholder (replace with real QR if needed) -->
+  <rect x="60" y="75" width="50" height="50" rx="8" fill="#fff" stroke="#3b82f6" stroke-width="3"/>
+  <g>
+    <rect x="68" y="83" width="10" height="10" fill="#3b82f6"/>
+    <rect x="82" y="83" width="10" height="10" fill="#3b82f6"/>
+    <rect x="68" y="97" width="10" height="10" fill="#3b82f6"/>
+    <rect x="82" y="97" width="10" height="10" fill="#3b82f6"/>
+    <rect x="75" y="90" width="10" height="10" fill="#3b82f6"/>
+  </g>
+  <!-- SyncSeva logo on band -->
+  <g>
+    <svg x="140" y="85" width="32" height="32" viewBox="0 0 32 32">
+      <rect width="32" height="32" rx="8" fill="#3b82f6"/>
+      <path d="M10 16c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6-6-2.686-6-6zm6-4a4 4 0 100 8 4 4 0 000-8z" fill="#fff"/>
+      <path d="M16 12v4l3 1.5" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <text x="180" y="105" font-size="28" font-family="'Inter',sans-serif" fill="#3b82f6" font-weight="bold">Sync</text>
+    <text x="250" y="105" font-size="28" font-family="'Inter',sans-serif" fill="#1e40af" font-weight="bold">Seva</text>
+  </g>
+  <!-- Band text -->
+  <text x="140" y="130" font-size="16" font-family="'Inter',sans-serif" fill="#64748b">Event ID Band with QR</text>
+</svg>
