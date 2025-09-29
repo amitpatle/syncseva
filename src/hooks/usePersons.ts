@@ -142,14 +142,3 @@ export function usePersons() {
     uploadPhoto,
   };
 }
-
-export async function getPersonByShareId(shareId: string): Promise<Person | null> {
-  const { data, error } = await supabase
-    .from('persons')
-    .select('*')
-    .eq('public_share_id', shareId)
-    .single();
-
-  if (error || !data) return null;
-  return data;
-}

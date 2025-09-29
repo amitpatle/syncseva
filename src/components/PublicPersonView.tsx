@@ -1,8 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Person } from '../lib/database.types';
-import { getPersonByShareId } from '../hooks/usePersons';
+import { supabase } from '../lib/supabase';
 import { MapPin, Phone, User, Calendar } from 'lucide-react';
+
+// Direct function to get person by share ID for public access
+async function getPersonByShareId(shareId: string): Promise<Person | null> {
+  try {
+    const { data, error } = await supabase
+      .from('persons')
+      .select('*')
+      .eq('public_share_id', shareId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching person:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getPersonByShareId:', error);
+    return null;
+  }
+}
 
 export default function PublicPersonView() {
   const { shareId } = useParams<{ shareId: string }>();
