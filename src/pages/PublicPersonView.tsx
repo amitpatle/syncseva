@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { usePerson } from '../hooks/usePerson';
 import { Person } from '../types';
 import { Card, CardContent } from '../components/ui/Card';
+import { QRSection } from '../components/persons/QRSection';
 import { MapPin, Phone, User, Heart, Calendar, Ruler, Weight, Droplet, AlertTriangle, Pill, Shield, FileText } from 'lucide-react';
 
 export const PublicPersonView = () => {
@@ -99,9 +100,12 @@ export const PublicPersonView = () => {
               </div>
             )}
           </div>
-          
           <CardContent className="p-8">
             <div className="space-y-6">
+              {/* QR Code Section */}
+              <div className="flex justify-center">
+                <QRSection value={`${window.location.origin}/public/${person.public_link_id}`} />
+              </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   {person.name}

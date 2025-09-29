@@ -1,8 +1,11 @@
-import { useState } from 'react';
+// ...existing code...
 import { Person } from '../../types';
 import { Card, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { CreditCard as Edit, Trash2, ExternalLink, Copy, User, Heart } from 'lucide-react';
+import { CreditCard as Edit, Trash2, ExternalLink, Copy, User, Heart, QrCode } from 'lucide-react';
+import { useState } from 'react';
+import { QRSection } from './QRSection';
+import { Modal } from '../ui/Modal';
 
 interface PersonCardProps {
   person: Person;
@@ -12,7 +15,8 @@ interface PersonCardProps {
 
 export const PersonCard = ({ person, onEdit, onDelete }: PersonCardProps) => {
   const [copied, setCopied] = useState(false);
-  
+  const [showQR, setShowQR] = useState(false);
+
   const publicUrl = `${window.location.origin}/public/${person.public_link_id}`;
 
   const copyPublicLink = async () => {
@@ -115,7 +119,6 @@ export const PersonCard = ({ person, onEdit, onDelete }: PersonCardProps) => {
               >
                 {copied ? '✓' : <Copy className="w-4 h-4" />}
               </Button>
-              
               <Button
                 size="sm"
                 variant="outline"
@@ -124,10 +127,21 @@ export const PersonCard = ({ person, onEdit, onDelete }: PersonCardProps) => {
               >
                 <ExternalLink className="w-4 h-4" />
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowQR(true)}
+                title="Show QR code"
+              >
+                <QrCode className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
       </CardContent>
+      <Modal isOpen={showQR} onClose={() => setShowQR(false)}>
+        <QRSection value={publicUrl} />
+      </Modal>
     </Card>
   );
 };
