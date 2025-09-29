@@ -5,14 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    },
     "start": "vite preview --port $PORT || 5000",
-    "engines": {
-      "node": ">=18.0.0"
-    },
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
